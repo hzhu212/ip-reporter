@@ -47,9 +47,27 @@ class IpReporter(object):
         with open(file_current_ip, 'w') as f:
             f.write(self.current_ip)
 
+    @staticmethod
+    def _get_all_ips():
+        addrs = socket.getaddrinfo(socket.gethostname(), None)
+        return [a[4][0] for a in addrs]
+
+    def _get_outer_ip(self):
+        all_ips = self._get_all_ips()
+        # 筛去 ipv6 和内网地址
+        filt = lambda s: (':' not in s) and (not s.startswith('192.168.'))
+        outer_ips = [ip for ip in all_ips if filt(ip)]
+        if not outer_ips:
+            self.logger.error('*** Error: Failed to get outer IP address ***')
+            return
+        elif len(outer_ips) > 1:
+            self.logger.warning('*** Error: Too many outer IP addresses: %s ***' %outer_ips)
+            return
+        return outer_ips[0]
+
     def _handle_ip_change(self):
         hostname = socket.gethostname()
-        detected_ip = socket.gethostbyname(hostname)
+        detected_ip = self._get_outer_ip()
         if detected_ip != self.current_ip:
             self.logger.info('IP address changed from %s to %s.' %(self.current_ip, detected_ip))
             _time = time.strftime('%Y-%m-%d %H:%M:%S', tuple(time.localtime()))

@@ -60,9 +60,27 @@ class IPReporterService(win32serviceutil.ServiceFramework):
         with open(fileCurrentIp, 'w') as f:
             f.write(self.currentIp)
 
+    @staticmethod
+    def _getAllIps():
+        addrs = socket.getaddrinfo(socket.gethostname(), None)
+        return [a[4][0] for a in addrs]
+
+    def _getOuterIp(self):
+        all_ips = self._getAllIps()
+        # 筛去 ipv6 和内网地址
+        filt = lambda s: (':' not in s) and (not s.startswith('192.168.'))
+        outer_ips = [ip for ip in all_ips if filt(ip)]
+        if not outer_ips:
+            self.logger.error('*** Error: Failed to get outer IP address ***')
+            return
+        elif len(outer_ips) > 1:
+            self.logger.warning('*** Error: Too many outer IP addresses: %s ***' %outer_ips)
+            return
+        return outer_ips[0]
+
     def _handleIpChange(self):
         hostname = socket.gethostname()
-        detectedIp = socket.gethostbyname(hostname)
+        detectedIp = self._getOuterIp()
         if detectedIp != self.currentIp:
             self.logger.info('IP address changed from %s to %s.' %(self.currentIp, detectedIp))
             _time = time.strftime('%Y-%m-%d %H:%M:%S', tuple(time.localtime()))
