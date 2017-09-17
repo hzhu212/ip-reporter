@@ -54,15 +54,17 @@ class IpReporter(object):
 
     def _get_outer_ip(self):
         all_ips = self._get_all_ips()
-        # 筛去 ipv6 和内网地址
-        filt = lambda s: (':' not in s) and (not s.startswith('192.168.'))
+        # 筛去 ipv6 、内网地址和保留地址
+        filt = lambda s: (':' not in s) \
+            and (not s.startswith('192.168.')) \
+            and (not s.startswith('169.254.'))
         outer_ips = [ip for ip in all_ips if filt(ip)]
         if not outer_ips:
             self.logger.error('*** Error: Failed to get outer IP address ***')
             return
         elif len(outer_ips) > 1:
             self.logger.warning('*** Error: Too many outer IP addresses: %s ***' %outer_ips)
-            return
+            return outer_ips[0]
         return outer_ips[0]
 
     def _handle_ip_change(self):
