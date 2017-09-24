@@ -58,7 +58,10 @@ class IPReporterService(win32serviceutil.ServiceFramework):
     def _saveCurrentIp(self):
         fileCurrentIp = os.path.join(self.appRoot, 'current_ip.txt')
         with open(fileCurrentIp, 'w') as f:
-            f.write(self.currentIp)
+            if self.currentIp:
+                f.write(self.currentIp)
+            else:
+                f.write('')
 
     @staticmethod
     def _getAllIps():

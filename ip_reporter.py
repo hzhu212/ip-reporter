@@ -45,7 +45,10 @@ class IpReporter(object):
     def _save_current_ip(self):
         file_current_ip = os.path.join(self.app_root, 'current_ip.txt')
         with open(file_current_ip, 'w') as f:
-            f.write(self.current_ip)
+            if self.current_ip:
+                f.write(self.current_ip)
+            else:
+                f.write('')
 
     @staticmethod
     def _get_all_ips():
