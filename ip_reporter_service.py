@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
+import os
 
+import inspect
+import logging
+import servicemanager
+import sys
+import socket
+import time
 import win32serviceutil
 import win32service
 import win32event
-import servicemanager
-import os, sys
-import logging
-import inspect
-import time
-import socket
 
 from email_util import EmailSender
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
 import logging
@@ -20,8 +18,7 @@ class SmtpLogger(object):
 
 class EmailSender(object):
     """generate and send emails"""
-    def __init__(self, app_root):
-        self.app_root = app_root
+    def __init__(self):
         email_params = os.environ['ipreporter'].split(',')
         self.from_email, \
         self.from_smtp, \
@@ -32,7 +29,7 @@ class EmailSender(object):
     def _get_logger(self):
         logger = logging.getLogger('EmailSender')
         logger.setLevel(logging.DEBUG)
-        log_file = os.path.join(self.app_root, 'log', 'email.log')
+        log_file = './log/email.log'
         handler = logging.FileHandler(log_file, encoding='utf8')
         formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
         handler.setFormatter(formatter)
@@ -47,10 +44,10 @@ class EmailSender(object):
         mail = MIMEText(msg_str, 'plain', 'utf-8')
         mail['From'] = self._format_addr('IP Reporter <%s>' %self.from_email)
         mail['To'] = self._format_addr(', '.join(['<%s>' %te for te in self.to_emails]))
-        mail['Subject'] = Header('远程主机 IP 地址已更改', 'utf-8').encode()
+        mail['Subject'] = Header('Remote IP Address has Changed', 'utf-8').encode()
         return mail
 
-    def send_email(self, mail):
+    def _send_email(self, mail):
         orig_std = (sys.stdout, sys.stderr)
         sys.stdout = sys.stderr = SmtpLogger(self.logger)
         try:
@@ -63,3 +60,6 @@ class EmailSender(object):
             self.logger.info('========================= email over =========================\n\n')
         finally:
             sys.stdout, sys.stderr = orig_std
+
+    def send_email(self, msg_str):
+        self._send_email(self.make_email(msg_str))
