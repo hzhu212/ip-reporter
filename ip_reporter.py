@@ -14,8 +14,6 @@ class IpReporter(object):
         self.sender = EmailSender()
         # check ip address every 10 minutes
         self.cycle_time = 60 * 10
-        # the minimum timing scale is 5 seconds
-        self.time_slice = 5
 
     def _get_logger(self):
         logger = logging.getLogger('IpReporter')
@@ -88,14 +86,9 @@ class IpReporter(object):
 
     def loop(self):
         """main loop"""
-        slice_count = int(self.cycle_time / self.time_slice)
-        n = 1
         while True:
-            n = n - 1
-            if n == 0:
-                self._handle_ip_change()
-                n = slice_count
-            time.sleep(self.time_slice)
+            self._handle_ip_change()
+            time.sleep(self.cycle_time)
 
 
 if __name__ == '__main__':
